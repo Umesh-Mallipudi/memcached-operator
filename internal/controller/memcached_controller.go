@@ -162,7 +162,15 @@ func (r *MemcachedReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	} else if err != nil {
 		return ctrl.Result{}, err
 	}
-
+	memcached.Status.ReadyReplicas = existingDeployment.Status.ReadyReplicas
+	if existingDeployment.Status.ReadyReplicas == memcached.Spec.Replicas {
+		memcached.Status.Phase = "Running"
+	} else {
+		memcached.Status.Phase = "Pending"
+	}
+	if err := r.Status().Update(ctx, memcached); err != nil {
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{}, nil
 }
 
